@@ -1,0 +1,65 @@
+<SCRIPT Language="VBScript">
+
+    Sub Window_Onload
+        strComputer = "."
+        window.resizeTo 400,300
+        window.MoveTo screen.width/2 - 180, screen.height/2 - 160
+        Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+        Set colPrinters = objWMIService.ExecQuery("Select * From Win32_Printer")
+
+        Dim count
+        count = colPrinters.Count
+        Dim sorted()
+        redim sorted(count)
+        Dim min
+        Dim temp
+        Dim index
+        Dim scan
+
+        // sorted is essentially a dict: [sorted position : index of element in colPrinters]
+        // start with the unsorted 1:1
+        For index = 0 to count-1
+        	sorted(index) = index
+        Next
+
+        // SelectionSort
+        For index = 0 To count-1
+        	min = index
+        	For scan = index+1 To count-1
+        		if colPrinters.ItemIndex(sorted(scan)).Name < colPrinters.ItemIndex(sorted(min)).Name then
+        			min = scan
+        		End If
+        	Next
+        	temp = sorted(min)
+        	sorted(min) = sorted(index)
+        	sorted(index) = temp
+        Next
+
+        // Build the displayed list
+        Dim objPrinter
+        For index=0 To count-1
+        	set objPrinter = colPrinters.ItemIndex(sorted(index))
+            strPrinter = objPrinter.Name
+            If Instr(strPrinter, "Microsoft XPS") Then
+                
+            ELSE
+                Set objOption = Document.createElement("OPTION")
+                objOption.Text = strprinter
+                objOption.Value = strPrinter
+                AvailablePrinters.Add(objOption)
+            End IF
+        Next
+    End Sub
+
+    Sub SetDefault
+        strPrinter = AvailablePrinters.Value
+        Set WshNetwork = CreateObject("Wscript.Network")
+        WshNetwork.SetDefaultPrinter strPrinter
+                                close()  
+                End Sub
+
+</SCRIPT>
+<title>Please select your default printer for this session </title>
+<body bgcolor="#0099FF">
+<select width="330" size="10" name="AvailablePrinters" style="width: 330px"></select><p>
+<input type="button" value="Set as Default Printer" width="330" style="width: 330px" onClick="SetDefault">
